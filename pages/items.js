@@ -1,186 +1,151 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
-import { ref, onValue, set } from "firebase/database";
+import { ref, onValue } from "firebase/database";
+
+const categoryColors = {
+  CNIC: "bg-rose-200 text-rose-800",
+  Wallet: "bg-blue-200 text-blue-800",
+  Phone: "bg-green-200 text-green-800",
+  Keys: "bg-yellow-200 text-yellow-800",
+  "ATM Card": "bg-purple-200 text-purple-800",
+  Documents: "bg-pink-200 text-pink-800",
+  Other: "bg-gray-200 text-gray-800",
+};
+
+const locations = [
+  "G-6", "G-7", "G-8", "G-9", "G-10", "G-11", "G-12", "G-13", "G-14",
+  "F-6", "F-7", "F-8", "F-9", "F-10", "F-11", "F-12",
+  "E-7", "E-8", "E-9", "E-10", "E-11", "E-12",
+  "I-8", "I-9", "I-10", "I-11", "I-12", "I-14",
+  "H-8", "H-9", "H-10", "H-11", "H-12",
+  "PWD", "Media Town", "Bahria Town Phase 1-8", "DHA Phase 1-6",
+  "Saddar", "Satellite Town", "Khurram Colony", "Muslim Town",
+  "CUST", "FAST", "NUST", "COMSATS", "Air University",
+  "Centaurus Mall", "Giga Mall", "Safa Gold Mall", "Amazon Mall",
+  "Faisal Mosque", "Lake View Park", "Fatima Jinnah Park",
+  "Other"
+];
 
 export default function Items() {
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState("");
-  const [sectorFilter, setSectorFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [visibleCount, setVisibleCount] = useState(10);
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterLocation, setFilterLocation] = useState("");
+  const [filterType, setFilterType] = useState("");
 
   useEffect(() => {
     const itemsRef = ref(db, "items");
     onValue(itemsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const loadedItems = Object.entries(data).map(([id, item]) => ({
-          id,
-          ...item,
-        }));
-        setItems(loadedItems.reverse());
-      } else {
-        setItems([]);
+        const loadedItems = Object.values(data).reverse();
+        setItems(loadedItems);
       }
     });
   }, []);
 
-  const handleClaimToggle = async (item) => {
-    const newStatus = item.status === "claimed" ? "lost" : "claimed";
-    const itemRef = ref(db, `items/${item.id}`);
-    await set(itemRef, { ...item, status: newStatus });
-  };
+  const filteredItems = items.filter((item) => {
+    const matchSearch =
+      item.title.toLowerCase().includes(search.toLowerCase()) ||
+      item.description.toLowerCase().includes(search.toLowerCase()) ||
+      item.sector.toLowerCase().includes(search.toLowerCase());
 
-  const filtered = items
-    .filter((item) => {
-      const textMatch = (
-        item.title +
-        item.category +
-        item.sector +
-        item.description
-      )
-        .toLowerCase()
-        .includes(search.toLowerCase());
+    const matchCategory = filterCategory ? item.category === filterCategory : true;
+    const matchLocation = filterLocation ? item.sector === filterLocation : true;
+    const matchType = filterType ? item.type === filterType : true;
 
-      const statusMatch =
-        statusFilter === "all" ? true : item.status === statusFilter;
-
-      const sectorMatch =
-        sectorFilter === "all"
-          ? true
-          : item.sector.toLowerCase() === sectorFilter.toLowerCase();
-
-      return textMatch && statusMatch && sectorMatch;
-    })
-    .slice(0, visibleCount);
-
-  const getCategoryColor = (category) => {
-    const cat = category.toLowerCase();
-    if (cat.includes("wallet")) return "bg-yellow-200 text-yellow-800";
-    if (cat.includes("id") || cat.includes("card")) return "bg-blue-200 text-blue-800";
-    if (cat.includes("phone")) return "bg-green-200 text-green-800";
-    if (cat.includes("keys")) return "bg-red-200 text-red-800";
-    if (cat.includes("bag")) return "bg-purple-200 text-purple-800";
-    if (cat.includes("usb")) return "bg-pink-200 text-pink-800";
-    if (cat.includes("charger")) return "bg-orange-200 text-orange-800";
-    if (cat.includes("jewel")) return "bg-amber-200 text-amber-800";
-    return "bg-gray-200 text-gray-800";
-  };
-
-  const allSectors = Array.from(new Set(items.map((i) => i.sector))).sort();
+    return matchSearch && matchCategory && matchLocation && matchType;
+  });
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-blue-800">Lost & Found Items</h1>
+    <div className="min-h-screen bg-white dark:bg-zinc-900 p-6">
+      <h2 className="text-3xl font-bold text-center text-rose-600 dark:text-rose-300 mb-6">
+        Lost & Found Items
+      </h2>
 
-      <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
         <input
           type="text"
-          placeholder="Search title, category, sector..."
+          placeholder="Search items..."
+          className="p-2 border rounded w-full sm:w-1/4 dark:bg-zinc-800 dark:text-white"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 p-2 border rounded w-full"
         />
 
         <select
-          value={sectorFilter}
-          onChange={(e) => setSectorFilter(e.target.value)}
-          className="p-2 border rounded"
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+          className="p-2 border rounded w-full sm:w-1/4 dark:bg-zinc-800 dark:text-white"
         >
-          <option value="all">All Sectors</option>
-          {allSectors.map((sec) => (
-            <option key={sec} value={sec}>
-              {sec}
-            </option>
+          <option value="">Category of Item</option>
+          {Object.keys(categoryColors).map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
           ))}
         </select>
 
-        <div className="flex gap-2">
-          {["all", "lost", "found", "claimed"].map((type) => (
-            <button
-              key={type}
-              onClick={() => setStatusFilter(type)}
-              className={`px-3 py-2 rounded text-sm ${
-                statusFilter === type
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700"
-              }`}
-            >
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </button>
+        <select
+          value={filterLocation}
+          onChange={(e) => setFilterLocation(e.target.value)}
+          className="p-2 border rounded w-full sm:w-1/4 dark:bg-zinc-800 dark:text-white"
+        >
+          <option value="">Location / Place</option>
+          {locations.map((loc) => (
+            <option key={loc} value={loc}>{loc}</option>
           ))}
-        </div>
+        </select>
+
+        <select
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+          className="p-2 border rounded w-full sm:w-1/4 dark:bg-zinc-800 dark:text-white"
+        >
+          <option value="">Lost / Found</option>
+          <option value="Lost">Lost</option>
+          <option value="Found">Found</option>
+        </select>
       </div>
 
-      {filtered.length === 0 ? (
-        <p className="text-gray-500">No matching items.</p>
-      ) : (
-        <div className="space-y-4">
-          {filtered.map((item) => (
+      {/* Items Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredItems.length > 0 ? (
+          filteredItems.map((item, index) => (
             <div
-              key={item.id}
-              className={`border p-4 rounded-lg shadow-sm bg-white relative ${
-                item.status === "claimed" ? "opacity-60" : ""
-              }`}
+              key={index}
+              className="bg-white dark:bg-zinc-800 p-4 rounded-xl shadow border border-zinc-200 dark:border-zinc-700"
             >
-              <div className="flex items-center justify-between mb-1">
-                <h2 className="text-xl font-semibold text-blue-700">{item.title}</h2>
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-xl font-semibold text-zinc-800 dark:text-white">
+                  {item.title}
+                </h3>
                 <span
-                  className={`px-2 py-1 text-sm rounded ${getCategoryColor(item.category)}`}
+                  className={`text-sm px-2 py-1 rounded-full ${categoryColors[item.category] || "bg-gray-300 text-gray-800"}`}
                 >
                   {item.category}
                 </span>
               </div>
-              <p className="text-gray-700"><strong>Sector:</strong> {item.sector}</p>
-              <p className="text-gray-700"><strong>Description:</strong> {item.description}</p>
-              <p className="text-green-600">
-                <strong>WhatsApp:</strong>{" "}
-                <a
-                  href={`https://wa.me/${item.whatsapp}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {item.whatsapp}
-                </a>
+              <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-1">
+                <strong>Type:</strong> {item.type}
               </p>
-
-              <p className="text-sm text-gray-500 mt-2">
-                Status:{" "}
-                <span
-                  className={`font-medium ${
-                    item.status === "lost"
-                      ? "text-red-500"
-                      : item.status === "found"
-                      ? "text-green-600"
-                      : "text-gray-600"
-                  }`}
-                >
-                  {item.status?.toUpperCase() || "N/A"}
-                </span>{" "}
-                • {new Date(item.createdAt).toLocaleString()}
+              <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-1">
+                <strong>Location:</strong> {item.sector}
               </p>
-
-              <button
-                onClick={() => handleClaimToggle(item)}
-                className="absolute top-3 right-3 text-xs bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
-              >
-                {item.status === "claimed" ? "Unclaim" : "Mark Claimed"}
-              </button>
+              <p className="text-sm text-zinc-700 dark:text-zinc-300 mb-2">
+                {item.description}
+              </p>
+              {item.whatsapp && (
+                <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                  <strong>WhatsApp:</strong> {item.whatsapp}
+                </p>
+              )}
             </div>
-          ))}
-        </div>
-      )}
-
-      {filtered.length < items.length && (
-        <div className="text-center mt-6">
-          <button
-            onClick={() => setVisibleCount((prev) => prev + 10)}
-            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-          >
-            Load More
-          </button>
-        </div>
-      )}
+          ))
+        ) : (
+          <p className="text-center text-zinc-500 dark:text-zinc-400 col-span-full">
+            No items match your filters.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
