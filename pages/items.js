@@ -13,16 +13,21 @@ const categoryColors = {
 };
 
 const locations = [
-  "G-6", "G-7", "G-8", "G-9", "G-10", "G-11", "G-12", "G-13", "G-14",
-  "F-6", "F-7", "F-8", "F-9", "F-10", "F-11", "F-12",
-  "E-7", "E-8", "E-9", "E-10", "E-11", "E-12",
-  "I-8", "I-9", "I-10", "I-11", "I-12", "I-14",
-  "H-8", "H-9", "H-10", "H-11", "H-12",
-  "PWD", "Media Town", "Bahria Town Phase 1-8", "DHA Phase 1-6",
-  "Saddar", "Satellite Town", "Khurram Colony", "Muslim Town",
-  "CUST", "FAST", "NUST", "COMSATS", "Air University",
-  "Centaurus Mall", "Giga Mall", "Safa Gold Mall", "Amazon Mall",
-  "Faisal Mosque", "Lake View Park", "Fatima Jinnah Park",
+  "G-5","G-6","G-7","G-8","G-9","G-10","G-11","G-12","G-13","G-14","G-15","G-16",
+  "F-5","F-6","F-7","F-8","F-9","F-10","F-11","F-12","F-13","F-14","F-15",
+  "H-8","H-9","H-10","H-11","H-12",
+  "I-8","I-9","I-10","I-11","I-12","I-14","I-15","I-16",
+  "D-12","E-11","E-10","E-9","E-8",
+  "Saddar","Committee Chowk","Khurram Colony","Muslim Town","Satellite Town",
+  "Faizabad","Marrir","Peshawar Road","Chaklala","Tench Bhatta","Commercial Market",
+  "DHA Phase 1","DHA Phase 2","DHA Phase 3","DHA Phase 4","DHA Phase 5",
+  "Bahria Town Phase 1","Bahria Town Phase 2","Bahria Town Phase 3","Bahria Town Phase 4",
+  "Bahria Town Phase 5","Bahria Town Phase 6","Bahria Town Phase 7","Bahria Town Phase 8",
+  "PWD","Media Town","Pakistan Town","Soan Gardens","Gulraiz","Ghauri Town",
+  "CUST","NUST","FAST","COMSATS","Air University","Bahria University",
+  "Roots International (G-8)","Roots Millennium (PWD)","Beaconhouse (F-10)",
+  "Shifa International","PIMS","Holy Family","Benazir Bhutto Hospital","Maroof Hospital","Ali Medical (F-8)",
+  "F-9 Park","Lake View Park","Ayub Park","Giga Mall","Centaurus","Safa Gold","Amazon Mall","Rabi Center","Panorama Center",
   "Other"
 ];
 
@@ -58,17 +63,17 @@ export default function Items() {
   });
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900 p-6">
+    <div className="min-h-screen bg-white dark:bg-zinc-900 p-6 pt-28">
       <h2 className="text-3xl font-bold text-center text-rose-600 dark:text-rose-300 mb-6">
         Lost & Found Items
       </h2>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center mb-8">
         <input
           type="text"
           placeholder="Search items..."
-          className="p-2 border rounded w-full sm:w-1/4 dark:bg-zinc-800 dark:text-white"
+          className="p-2 border rounded w-full sm:w-1/4"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -76,29 +81,33 @@ export default function Items() {
         <select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
-          className="p-2 border rounded w-full sm:w-1/4 dark:bg-zinc-800 dark:text-white"
+          className="p-2 border rounded w-full sm:w-1/4"
         >
           <option value="">Category of Item</option>
           {Object.keys(categoryColors).map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
           ))}
         </select>
 
         <select
           value={filterLocation}
           onChange={(e) => setFilterLocation(e.target.value)}
-          className="p-2 border rounded w-full sm:w-1/4 dark:bg-zinc-800 dark:text-white"
+          className="p-2 border rounded w-full sm:w-1/4"
         >
           <option value="">Location / Place</option>
           {locations.map((loc) => (
-            <option key={loc} value={loc}>{loc}</option>
+            <option key={loc} value={loc}>
+              {loc}
+            </option>
           ))}
         </select>
 
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className="p-2 border rounded w-full sm:w-1/4 dark:bg-zinc-800 dark:text-white"
+          className="p-2 border rounded w-full sm:w-1/4"
         >
           <option value="">Lost / Found</option>
           <option value="Lost">Lost</option>
@@ -106,7 +115,7 @@ export default function Items() {
         </select>
       </div>
 
-      {/* Items Grid */}
+      {/* Results */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredItems.length > 0 ? (
           filteredItems.map((item, index) => (
@@ -119,7 +128,9 @@ export default function Items() {
                   {item.title}
                 </h3>
                 <span
-                  className={`text-sm px-2 py-1 rounded-full ${categoryColors[item.category] || "bg-gray-300 text-gray-800"}`}
+                  className={`text-sm px-2 py-1 rounded-full ${
+                    categoryColors[item.category] || "bg-gray-300 text-gray-800"
+                  }`}
                 >
                   {item.category}
                 </span>
